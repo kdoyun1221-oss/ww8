@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2f4f8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11151c" media="(prefers-color-scheme: dark)">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="WW8 단어">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Wordly Wise 8 예문 퀴즈</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=Noto+Sans+KR:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one study column. Home = grouped menu (외우기 / 문제 / 복습) + options; study screens pin their action buttons to a bottom dock */
+:root{
+  --bg:#f2f4f8; --card:#ffffff; --sunk:#f6f8fb; --ink:#18202d; --muted:#626e80; --line:#dfe4ec;
+  --accent:#2a4fd6; --accent-soft:#e6ecfd; --ok:#1d7a4b; --ok-soft:#e3f4ea; --bad:#b4322f; --bad-soft:#fce8e7;
+  --f-en:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-ui:"Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11151c; --card:#1a2029; --sunk:#151a22; --ink:#e8ecf2; --muted:#9aa5b6; --line:#2a323e;
+  --accent:#93acff; --accent-soft:#222c46; --ok:#72d6a3; --ok-soft:#163126; --bad:#ff8d87; --bad-soft:#381c1c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11151c; --card:#1a2029; --sunk:#151a22; --ink:#e8ecf2; --muted:#9aa5b6; --line:#2a323e;
+  --accent:#93acff; --accent-soft:#222c46; --ok:#72d6a3; --ok-soft:#163126; --bad:#ff8d87; --bad-soft:#381c1c; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:16px;line-height:1.65;-webkit-tap-highlight-color:transparent;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 0}
+button{font:inherit;color:inherit}
+.wrap{max-width:600px;margin:0 auto;display:flex;flex-direction:column;gap:14px;padding-bottom:28px}
+header h1{font-family:var(--f-en);font-weight:600;font-size:1.5rem;margin:0;line-height:1.2;text-wrap:balance}
+header p{margin:2px 0 0;color:var(--muted);font-size:.9rem}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:18px}
+.label{font-size:.78rem;letter-spacing:.04em;color:var(--muted);font-weight:700;margin-bottom:8px}
+.note{font-size:.88rem;color:var(--muted);margin:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* home menu */
+.group{display:flex;flex-direction:column;gap:8px}
+.tiles2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{text-align:left;display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--line);background:var(--sunk);border-radius:12px;padding:13px 14px;cursor:pointer;min-width:0}
+.tile b{font-size:1.02rem;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tile span{font-size:.82rem;color:var(--muted);line-height:1.45}
+.tile[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tile[aria-pressed="true"] b{color:var(--accent)}
+.cnt{font-family:var(--f-mono);font-size:.76rem;font-weight:500;color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:0 8px;line-height:1.6}
+.cnt.zero{color:var(--muted);background:var(--line)}
+.grid-l{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:8px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chip{font-size:.95rem;border:1px solid var(--line);background:var(--sunk);border-radius:10px;padding:9px 6px;cursor:pointer;font-variant-numeric:tabular-nums;text-align:center}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--card);font-weight:700}
+.btn{font-size:1.02rem;font-weight:700;border:0;background:var(--accent);color:var(--card);border-radius:12px;padding:14px 16px;cursor:pointer;width:100%;min-height:52px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.ghost{background:var(--accent-soft);color:var(--accent)}
+.btn.bad{background:var(--bad-soft);color:var(--bad)}
+.btn.ok{background:var(--ok);color:var(--card)}
+.btn.small{min-height:44px;padding:10px;font-size:.95rem}
+.btns{display:flex;flex-direction:column;gap:8px}
+.wlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.wlist li{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);min-width:0}
+.wlist .w{font-family:var(--f-en);font-weight:600;font-size:1.08rem;flex:none}
+.wlist .m{flex:1;min-width:0;color:var(--muted);font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.x{font-size:.8rem;border:1px solid var(--line);background:var(--sunk);color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer;flex:none}
+.tag{font-family:var(--f-mono);font-size:.72rem;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:6px;flex:none;white-space:nowrap}
+.tag.t{color:var(--muted);background:var(--line)}
+
+/* study screens */
+.stage{display:flex;flex-direction:column;gap:12px}
+.top{display:flex;align-items:center;gap:10px}
+.back{font-size:.9rem;border:0;background:transparent;color:var(--muted);padding:6px 2px;cursor:pointer}
+.meta{flex:1;display:flex;justify-content:flex-end;gap:10px;font-family:var(--f-mono);font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.bar{height:5px;background:var(--line);border-radius:5px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.dock{position:sticky;bottom:0;z-index:5;background:var(--bg);padding:10px 0 calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* flashcard */
+.fc{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;min-height:340px;padding:22px 20px;display:flex;flex-direction:column;gap:16px;cursor:pointer;text-align:left;width:100%;box-shadow:0 1px 2px rgba(20,30,50,.05),0 8px 24px rgba(20,30,50,.06)}
+.fc.anim{animation:flip .22s ease-out}
+@keyframes flip{from{transform:rotateX(14deg) scale(.98);opacity:.55}to{transform:none;opacity:1}}
+.rvbadge{position:absolute;top:14px;left:14px;font-size:.75rem;font-weight:700;color:var(--bad);background:var(--bad-soft);border-radius:999px;padding:3px 10px}
+.front{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center}
+.big{font-family:var(--f-en);font-size:clamp(2.4rem,11vw,3.2rem);font-weight:600;line-height:1.05;overflow-wrap:anywhere}
+.sub{font-size:.85rem;color:var(--muted)}
+.tap{font-size:.82rem;color:var(--accent);background:var(--accent-soft);border-radius:999px;padding:4px 12px;flex:none}
+.fhead{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.fhead .w{font-family:var(--f-en);font-size:1.75rem;font-weight:600;line-height:1.1}
+.fc .rvbadge+.fhead{padding-top:22px}
+.senses{display:flex;flex-direction:column;gap:18px}
+.sense{display:grid;grid-template-columns:26px 1fr;gap:4px 10px}
+.sense .n{grid-row:span 3;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:.85rem;display:grid;place-items:center;margin-top:1px}
+.sense .m{font-weight:700;font-size:1.08rem;min-width:0}
+.ex{font-family:var(--f-en);font-size:1.12rem;line-height:1.55;background:var(--sunk);border-radius:10px;padding:10px 12px;min-width:0}
+.ex b{color:var(--accent);font-weight:600}
+.ko{color:var(--muted);font-size:.92rem;line-height:1.6;min-width:0}
+
+/* quiz */
+.qcard{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 18px;display:flex;flex-direction:column;gap:18px}
+.qtype{font-size:.82rem;font-weight:700;color:var(--muted)}
+.sent{font-family:var(--f-en);font-size:1.32rem;line-height:1.6;margin:0}
+.sent b{color:var(--accent);font-weight:600}
+.blank{display:inline-block;min-width:4.5em;border-bottom:2.5px solid var(--accent);height:1.1em;vertical-align:-2px}
+.hint{font-family:var(--f-ui);font-size:.74rem;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:3px;white-space:nowrap}
+.qword{font-family:var(--f-en);font-size:clamp(2.2rem,10vw,2.8rem);font-weight:600;text-align:center;line-height:1.1;margin:4px 0}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;text-align:left;border:1.5px solid var(--line);background:var(--sunk);border-radius:12px;padding:12px 14px;cursor:pointer;min-height:52px;min-width:0}
+.opt .ol{flex:none;width:26px;height:26px;border-radius:7px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.opt .ot{min-width:0;overflow-wrap:anywhere}
+.opt.en .ot{font-family:var(--f-en);font-size:1.18rem}
+.opt.ok{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);font-weight:700}
+.opt.ok .ol{background:var(--ok);border-color:var(--ok);color:var(--card)}
+.opt.bad{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt.bad .ol{background:var(--bad);border-color:var(--bad);color:var(--card)}
+.opt.dim{opacity:.5}
+.opts.use .opt{align-items:flex-start;padding:12px 14px}
+.opts.use .opt .ol{margin-top:2px}
+.opts.use .ot{font-family:var(--f-en);font-size:1.04rem;line-height:1.5}
+.uw{font-weight:600;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px;text-decoration-color:var(--accent)}
+.strike{text-decoration:line-through;text-decoration-color:var(--bad);color:var(--bad)}
+.tile.wide{grid-column:1/-1}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.opt:disabled{cursor:default}
+.fb{border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);background:var(--card)}
+.verdict{font-weight:700;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center}
+.fb.ok .verdict{color:var(--ok)}.fb.bad .verdict{color:var(--bad)}
+.saved{font-size:.78rem;font-weight:500;color:var(--muted);background:var(--sunk);border-radius:999px;padding:2px 10px}
+.fword{font-family:var(--f-en);font-size:1.25rem;font-weight:600}
+
+/* results */
+.score{font-family:var(--f-en);font-size:2.8rem;margin:0;line-height:1;font-variant-numeric:tabular-nums}
+.rlist{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
+.rlist li{border-top:1px solid var(--line);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.rlist .w{font-family:var(--f-en);font-weight:600;font-size:1.12rem}
+@media (min-width:560px){.opts.en-grid{display:grid;grid-template-columns:1fr 1fr}.opts.en-grid .opt:last-child{grid-column:span 2}}
+@media (max-width:360px){.tiles2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.fc.anim{animation:none}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Wordly Wise 8 · Lesson 11–20</h1>
+    <p>교재 예문으로 외우고, 풀고, 틀린 것만 다시 보기</p>
+  </header>
+
+  <!-- HOME -->
+  <section class="panel" id="home">
+    <div class="group">
+      <div class="label" style="margin:0">외우기</div>
+      <button class="tile" data-mode="card"><b>단어 카드</b><span>카드를 눌러 뜻·예문·해석 보기</span></button>
+    </div>
+    <div class="group">
+      <div class="label" style="margin:0">문제 · 5지선다</div>
+      <div class="tiles2">
+        <button class="tile" data-mode="blank"><b>빈칸 채우기</b><span>교재 예문 빈칸에 맞는 단어</span></button>
+        <button class="tile" data-mode="mean"><b>뜻 맞추기</b><span>단어 보고 한국어 뜻 고르기</span></button>
+        <button class="tile wide" data-mode="use"><b>어색한 쓰임 고르기</b><span>5개 문장 중 밑줄 단어가 어울리지 않는 문장 찾기</span></button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label" style="margin:0">복습</div>
+      <div class="tiles2">
+        <button class="tile" data-mode="rv"><b>다시 볼 카드 <i class="cnt" id="rvCnt">0</i></b><span>‘다시 볼래요’ 누른 카드</span></button>
+        <button class="tile" data-mode="wr"><b>오답 노트 <i class="cnt" id="wrCnt">0</i></b><span>문제에서 틀린 것</span></button>
+      </div>
+    </div>
+
+    <div id="optLesson">
+      <div class="label">Lesson</div>
+      <div class="grid-l" id="lessons"></div>
+    </div>
+    <div id="optCount">
+      <div class="label">문항 수</div>
+      <div class="grid-4" id="counts">
+        <button class="chip" data-n="10">10</button>
+        <button class="chip" data-n="20">20</button>
+        <button class="chip" data-n="40">40</button>
+        <button class="chip" data-n="0">전부</button>
+      </div>
+    </div>
+    <div id="rvPane"></div>
+    <div id="wrPane"></div>
+    <button class="btn" id="startBtn">시작</button>
+  </section>
+
+  <!-- CARDS -->
+  <section class="stage" id="cards" hidden>
+    <div class="top"><button class="back" data-home>← 처음으로</button><div class="meta"><span id="cTag"></span><span id="cNum"></span></div></div>
+    <div class="bar"><i id="cProg"></i></div>
+    <button class="fc" id="fc" type="button"></button>
+    <div class="dock">
+      <div class="two">
+        <button class="btn bad" id="cAgain">다시 볼래요</button>
+        <button class="btn ok" id="cKnow">외웠어요</button>
+      </div>
+      <button class="btn ghost small" id="cPrev">이전 카드</button>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="stage" id="quiz" hidden>
+    <div class="top"><button class="back" data-home>← 처음으로</button><div class="meta"><span id="qTag"></span><span id="qNum"></span></div></div>
+    <div class="bar"><i id="qProg"></i></div>
+    <div class="qcard"><div id="qBody"></div><div id="qOpts"></div></div>
+    <div id="qFb"></div>
+    <div class="dock" id="qDock" hidden><button class="btn" id="nextBtn">다음</button></div>
+  </section>
+
+  <!-- RESULT -->
+  <section class="panel" id="result" hidden></section>
+</div>
+
+<script>
+const RAW=`11|augment|늘리다, 증가시키다|In order to buy a new bike before summer, Iris _ her savings by babysitting the twins next door.|augmented|여름 전에 새 자전거를 사려고 아이리스는 옆집 쌍둥이를 돌봐서 저축액을 늘렸다.
+11|benign|친절한, 상냥한|Friendly nurses were a _ presence in the hospital.|benign|친절한 간호사들은 병원 안에서 상냥한 존재였다.
+11|benign|(날씨 등) 온화한, 해롭지 않은|Although the weather had been _ in the morning when Juan and Ana started out on their bikes, by noon the sky was dark, and they heard thunder in the distance.|benign|후안과 아나가 출발한 아침엔 날씨가 온화했지만, 정오 무렵 하늘이 어두워지고 멀리서 천둥소리가 들렸다.
+11|connoisseur|감정가, 전문가|A _ of rare stamps would recognize the famous English “penny black” at once.|connoisseur|희귀 우표 감정가라면 유명한 영국의 ‘페니 블랙’을 즉시 알아볼 것이다.
+11|discern|(눈으로) 알아보다|About forty-five minutes after the ferry left Block Island, the passengers could _ the coast of Rhode Island before them.|discern|페리가 블록 아일랜드를 떠난 지 약 45분 후, 승객들은 앞에 있는 로드아일랜드 해안을 알아볼 수 있었다.
+11|discern|이해하다, 인식하다|Not until she finished the novel did Janice _ the significance of the title.|discern|재니스는 소설을 다 읽고 나서야 제목의 의미를 이해했다.
+11|discern|분별하다, 구별하다|Unfortunately for Laura, her teacher was able to _ Laura’s handwriting from her mother’s handwriting.|discern|불행히도 로라의 선생님은 로라의 필체와 어머니의 필체를 구별할 수 있었다.
+11|discerning|안목이 있는|The coach’s _ comments about Rudi’s jump shot helped him improve his game.|discerning|루디의 점프 슛에 대한 코치의 안목 있는 조언이 그의 경기력 향상을 도왔다.
+11|embellish|장식하다, 꾸미다|The entire surface of the black cloth had been _ with colored threads stitched in elaborate patterns.|embellished|검은 천 표면 전체가 정교한 무늬로 수놓은 색실로 장식되어 있었다.
+11|embellish|(이야기를) 윤색하다|Mark Twain often _ his stories to make them more interesting.|embellished|마크 트웨인은 이야기를 더 흥미롭게 하려고 종종 윤색했다.
+11|execute|실행하다, 수행하다|The karate instructor told me to _ a front snap kick.|execute|가라테 강사는 나에게 앞차기를 해 보라고 했다.
+11|execute|(예술 작품을) 만들어 내다|The sculptor Maya Lin often uses unusual materials, such as pieces of wood or shards of glass, to _ her pieces.|execute|조각가 마야 린은 나무 조각이나 유리 파편 같은 독특한 재료로 작품을 제작하곤 한다.
+11|execute|처형하다|_ criminals condemned to death is a controversial practice.|Executing|사형 선고를 받은 죄수를 처형하는 것은 논란이 많은 관행이다.
+11|exemplify|전형적인 예가 되다|The poetry of Langston Hughes _ some of the best work of the writers of the Harlem Renaissance.|exemplifies|랭스턴 휴즈의 시는 할렘 르네상스 작가들의 가장 뛰어난 작품을 잘 보여 준다.
+11|grotesque|기괴한, 흉측한|The _ masks worn by the dancers frightened the children.|grotesque|무용수들이 쓴 기괴한 가면이 아이들을 겁에 질리게 했다.
+11|hallowed|신성한, 존경받는|Arlington National Cemetery is _ ground because it is the burial place for soldiers who have died in war.|hallowed|알링턴 국립묘지는 전사한 군인들이 묻힌 곳이라 신성한 땅이다.
+11|impersonate|~인 척하다, 사칭하다|The solution to the mystery became clear to the detective when he learned that one woman had _ another when renting the apartment.|impersonated|한 여성이 아파트를 빌릴 때 다른 사람을 사칭했다는 걸 알게 되자 형사에게 미스터리가 풀렸다.
+11|impersonate|흉내 내다|I tried to _ my mother when I answered the phone.|impersonate|나는 전화를 받을 때 엄마 흉내를 내려고 했다.
+11|malevolent|악의적인|The bully’s _ plan was to frighten the younger students on the bus so they would give him their lunch money.|malevolent|그 불량배의 악의적인 계획은 버스의 어린 학생들을 겁줘서 점심값을 뺏는 것이었다.
+11|malevolence|악의|The look of _ in his eyes sent shudders down our spines.|malevolence|그의 눈에 서린 악의에 우리는 등골이 오싹했다.
+11|ornate|화려하게 장식된|The tour guide pointed out the _ carving over the arched doorway.|ornate|가이드가 아치형 출입구 위의 화려한 조각을 가리켰다.
+11|pastoral|목축의, 양치기의|The Industrial Revolution contributed to the disappearance of a _ way of life.|pastoral|산업 혁명은 목축 생활 방식이 사라지는 데 한몫했다.
+11|pastoral|전원적인, 목가적인|Some of my sister’s college friends plan to move together to a _ place where they will herd goats and grow their own vegetables.|pastoral|언니의 대학 친구 몇 명은 염소를 키우고 채소를 기르며 살 목가적인 곳으로 함께 이사할 계획이다.
+11|precarious|불안정한, 위태로운|Having cut through the thick vines to get a better view of the waterfall, the hikers did not understand how _ their situation was until they tried to return to the trail and could not find it.|precarious|폭포를 더 잘 보려고 덩굴을 헤치고 간 등산객들은 길로 돌아가려다 길을 못 찾고 나서야 상황이 얼마나 위태로운지 깨달았다.
+11|renown|명성|By 1964, the Beatles had achieved worldwide _ for their rock-and-roll music.|renown|1964년 무렵 비틀스는 로큰롤 음악으로 세계적 명성을 얻었다.
+11|renowned|유명한, 명성 있는|Isabelle Allende is a _ writer, lecturer, translator, and journalist who has lived in many places around the world.|renowned|이사벨 아옌데는 세계 곳곳에서 살아온 저명한 작가이자 강연가, 번역가, 언론인이다.
+12|accede|동의하다, 응하다|Nasri _ to the wishes of his classmates and stopped tapping his fingers on the table during study hall.|acceded|나스리는 반 친구들의 바람에 응해 자습 시간에 손가락으로 책상 두드리기를 그만뒀다.
+12|affluent|부유한|Although Cicely was not from an _ family, she could attend an expensive school because of the scholarship she had won.|affluent|시실리는 부유한 집 출신은 아니었지만 장학금 덕분에 비싼 학교에 다닐 수 있었다.
+12|affluence|부, 풍족|Mrs. Winn’s _ is due to oil being discovered on her land.|affluence|윈 부인의 부유함은 그녀의 땅에서 석유가 발견된 덕분이다.
+12|arbitrary|임의적인, 제멋대로인|Even though our choice of restaurant was _, the food was delicious.|arbitrary|식당은 아무렇게나 고른 것이었지만 음식은 맛있었다.
+12|artisan|장인|_ working with leather, yarn, and clay displayed their products at the local crafts fair.|Artisans|가죽, 실, 점토로 작업하는 장인들이 지역 공예 박람회에 제품을 전시했다.
+12|dismantle|분해하다, 해체하다|Wong helped Matt _ the engine so they could begin work on the repair.|dismantle|웡은 수리를 시작할 수 있도록 매트가 엔진을 분해하는 것을 도왔다.
+12|immerse|(액체에) 담그다|To prepare the salad, Eva first blanched the vegetables by _ them in boiling water.|immersing|샐러드를 만들려고 에바는 먼저 채소를 끓는 물에 담가 데쳤다.
+12|immerse|몰두하게 하다|Sophie, _ in her book, did not notice when Jay boarded the bus and sat down beside her.|immersed|책에 푹 빠진 소피는 제이가 버스에 타서 옆에 앉는 것도 몰랐다.
+12|irksome|짜증나는, 지루한|All the steps preliminary to painting the ceiling—scraping, patching, and sanding—were _ to Nevaeh, who wanted to finish the job quickly.|irksome|일을 빨리 끝내고 싶던 네바에게 천장 칠 전의 긁기, 메우기, 사포질은 짜증스러웠다.
+12|legacy|(유언으로 남긴) 유산|This silver pocket watch is my _ from Grandfather Gomez.|legacy|이 은 회중시계는 고메즈 할아버지께 물려받은 유산이다.
+12|legacy|(과거의) 유산|Catholicism and the Spanish language are _ of Spanish rule in Guatemala.|legacies|가톨릭과 스페인어는 과테말라에 남은 스페인 통치의 유산이다.
+12|ostentatious|과시적인, 호화로운|My grandmother favors _ furnishings, but my dad prefers simple furniture and decorations.|ostentatious|할머니는 화려한 가구를 좋아하시지만 아빠는 단순한 가구와 장식을 선호한다.
+12|panorama|전경|We took the elevator up to the observation deck so we could view the _ of New York City and all its suburbs.|panorama|뉴욕시와 교외 전체의 전경을 보려고 엘리베이터로 전망대에 올라갔다.
+12|panorama|전반적인 개관|One course my aunt teaches at the university is a _ of civil-rights law in the United States.|panorama|이모가 대학에서 가르치는 과목 하나는 미국 민권법 전반을 개관하는 것이다.
+12|philanthropy|자선 활동|The _ of the Tan family has provided the money for this cancer research center.|philanthropy|탄 가족의 자선 덕분에 이 암 연구 센터의 자금이 마련됐다.
+12|philanthropist|자선가|Andrew Carnegie, a renowned _, established many public libraries in the early 1900s.|philanthropist|유명한 자선가 앤드루 카네기는 1900년대 초 많은 공공 도서관을 세웠다.
+12|prestige|위신, 명성|Winning the Nobel Prize brings much _.|prestige|노벨상 수상은 큰 명성을 가져다준다.
+12|prestigious|명망 있는, 일류의|An Oscar is the most _ award in the movie industry.|prestigious|오스카상은 영화계에서 가장 권위 있는 상이다.
+12|prolific|다작하는|Although Maya Angelou was a _ poet, she is known primarily for her series of autobiographies.|prolific|마야 안젤루는 다작한 시인이었지만 주로 자서전 연작으로 알려져 있다.
+12|reticent|말이 없는, 과묵한|When we asked her about her parents, Adriana grew _.|reticent|부모님에 대해 묻자 아드리아나는 말이 없어졌다.
+12|reticence|과묵, 침묵|Liao’s _ about his plans for the summer made us even more curious.|reticence|여름 계획에 대해 말을 아끼는 리아오 때문에 우리는 더 궁금해졌다.
+12|tycoon|(재계의) 거물|Sam Walton, the business _ who founded Walmart, worked at many different jobs while he was in school, including milking cows and waiting tables.|tycoon|월마트를 세운 재계 거물 샘 월튼은 학창 시절 소젖 짜기, 식당 서빙 등 많은 일을 했다.
+13|ardent|열렬한|In spite of Miriam’s _ praise of Dontrell, I was not convinced of his ability.|ardent|돈트렐에 대한 미리엄의 열렬한 칭찬에도 나는 그의 능력을 확신하지 못했다.
+13|ardor|열정|Romeo’s _ led him to take great risks to see his beloved Juliet.|ardor|로미오는 열정 때문에 사랑하는 줄리엣을 보려고 큰 위험을 감수했다.
+13|assail|공격하다, 맹비난하다|Critics _ the book when it first appeared, but the reading public loved it.|assailed|비평가들은 그 책이 처음 나왔을 때 맹비난했지만 독자들은 사랑했다.
+13|assail|(감정이) 엄습하다, 괴롭히다|During the test, feelings of guilt _ Miranda as she peeked at the answer she had written on her hand.|assailed|시험 중 손에 써 둔 답을 훔쳐볼 때 미란다는 죄책감에 시달렸다.
+13|asset|자산|The late Mr. Kim’s _ include a valuable coin collection.|assets|고(故) 김 씨의 자산에는 값진 동전 수집품이 있다.
+13|asset|유용한 자질, 장점|Height can be a great _ in a basketball player.|asset|농구 선수에게 키는 큰 자산이 될 수 있다.
+13|barter|물물교환하다|Instead of taking cash for fixing the Walkers’ garage window, DeRay _ for a batch of their famous gumbo.|bartered|디레이는 워커 씨네 차고 창문을 고쳐 주고 현금 대신 그 집의 유명한 검보와 맞바꿨다.
+13|barter|물물교환|Commerce is conducted by _ in some rural areas, where many people have more fruits and vegetables than they can use themselves.|barter|일부 시골에서는 물물교환으로 거래가 이뤄지는데, 그곳 사람들은 쓸 수 있는 것보다 많은 과일과 채소를 가지고 있다.
+13|bonanza|노다지, 뜻밖의 횡재|The discovery of gold in 1848 was a _ for the newly acquired territory that would become the state of California.|bonanza|1848년의 금 발견은 훗날 캘리포니아주가 될 새 영토에 노다지였다.
+13|contagious|전염성의|They say that laughter is _.|contagious|웃음은 전염된다고들 한다.
+13|contemplate|심사숙고하다|Einstein _ the relationship between matter and energy.|contemplated|아인슈타인은 물질과 에너지의 관계를 깊이 생각했다.
+13|contemplate|~할 것을 생각하다|While still in college, Jordana _ going to either medical school or law school.|contemplated|대학 시절 조다나는 의대나 로스쿨 진학을 고려했다.
+13|deter|단념시키다, 막다|Yesterday’s rough seas _ the divers from exploring the sunken ship.|deterred|어제의 거친 바다 때문에 잠수부들은 침몰선 탐사를 못 했다.
+13|deterrent|억제하는 것|A “Keep Off” sign acts as a _ against trespassers.|deterrent|‘출입 금지’ 표지판은 무단 침입을 막는 역할을 한다.
+13|flair|타고난 재능|The comedian’s _ for bantering with audience members has made him a popular entertainer.|flair|관객과 농담을 주고받는 재능 덕분에 그 코미디언은 인기 연예인이 되었다.
+13|forfeit|몰수당하다, 잃다|If you leave the stadium before the end of the concert, you _ the right to return.|forfeit|콘서트가 끝나기 전에 경기장을 나가면 재입장 권리를 잃는다.
+13|forfeit|벌금, 몰수품|You have to pay a _ if you can’t answer the question.|forfeit|질문에 답하지 못하면 벌금을 내야 한다.
+13|innovation|혁신|Adding apps to cell phones was an _ that transformed cell-phone technology.|innovation|휴대폰에 앱을 더한 것은 휴대폰 기술을 바꾼 혁신이었다.
+13|innovative|혁신적인|Companies succeed by being _ and keeping up with the latest technology.|innovative|기업은 혁신적이고 최신 기술을 따라잡음으로써 성공한다.
+13|mania|열광, 열풍|The trendy new video-game system caused a _ in toy stores.|mania|유행하는 새 게임기가 장난감 가게에 열풍을 일으켰다.
+13|stymie|방해하다, 좌절시키다|Rosa’s efforts to start her own lawn-mowing business were _ when the mower kept breaking down.|stymied|잔디 깎는 기계가 계속 고장 나자 잔디 깎기 사업을 시작하려던 로사의 노력은 좌절됐다.
+13|synonymous|동의어의, 밀접한|The company boasts that its name is _ with quality.|synonymous|그 회사는 자사 이름이 곧 품질이라고 자랑한다.
+13|wrangle|말다툼하다|Sue and Mario _ over whose turn it was to cut the grass.|wrangled|수와 마리오는 누가 잔디 깎을 차례인지 두고 말다툼했다.
+14|congenial|상냥한, 붙임성 있는|The people in the small town were very _ when the tourist asked many questions.|congenial|관광객이 질문을 많이 했을 때 작은 마을 사람들은 매우 친절했다.
+14|congenial|마음에 맞는, 쾌적한|We found a _ little neighborhood on the south side.|congenial|우리는 남쪽에서 마음에 드는 작은 동네를 찾았다.
+14|decipher|(암호를) 해독하다|You _ the coded message by replacing numbers with the corresponding letters.|decipher|숫자를 해당 글자로 바꾸면 암호 메시지를 해독할 수 있다.
+14|decipher|판독하다, 알아내다|The writing in these old letters is so faded that it is almost impossible to _ the words.|decipher|이 오래된 편지의 글씨는 너무 바래서 단어를 판독하기가 거의 불가능하다.
+14|dissect|해부하다|Students taking the biology course _ a dead frog to learn about the internal organs.|dissect|생물 수업을 듣는 학생들은 내장 기관을 배우려고 죽은 개구리를 해부한다.
+14|dissect|상세히 분석하다|After Coach Willard and the team members had watched the video of last week’s game, they _ the plays that had gone wrong.|dissected|윌러드 코치와 선수들은 지난주 경기 영상을 본 뒤 잘못된 플레이를 분석했다.
+14|enigma|수수께끼|Even after many studies, the purpose of the huge, complex designs formed in the dirt of the Peruvian desert remains an _.|enigma|많은 연구 후에도 페루 사막 흙에 새겨진 거대하고 복잡한 그림의 목적은 수수께끼로 남아 있다.
+14|enigmatic|수수께끼 같은|After I heard Lucia’s _ phone message, I called her immediately to find out what was going on.|enigmatic|루시아의 알쏭달쏭한 음성 메시지를 듣고 무슨 일인지 알아보려고 바로 전화했다.
+14|ineffectual|효과 없는|My attempt to grow tomato plants from seed has been _, with most withering before they sprout leaves.|ineffectual|씨앗으로 토마토를 키우려는 시도는 효과가 없었고, 대부분 잎이 나기도 전에 시들었다.
+14|infallible|결코 틀리지 않는|The dictionary is an _ resource for checking word spellings and meanings.|infallible|사전은 단어 철자와 뜻을 확인하는 틀림없는 자료다.
+14|infallible|절대 확실한|Baking a big batch of brownies was Grandmother’s _ method of cheering us up.|infallible|브라우니를 잔뜩 굽는 것은 할머니가 우리 기분을 풀어 주는 확실한 방법이었다.
+14|irrepressible|억누를 수 없는|Charlie’s _ sense of humor helps make history class fun.|irrepressible|찰리의 못 말리는 유머 감각 덕분에 역사 수업이 재밌다.
+14|luminous|빛나는|Do you have a watch with a _ face that you can bring on our camping trip?|luminous|캠핑에 가져갈 야광 시계 있어?
+14|luminous|명료한, 이해하기 쉬운|Jennie’s history teacher praised her _ prose in her research paper.|luminous|역사 선생님은 제니 연구 보고서의 명료한 문장을 칭찬했다.
+14|millennium|천 년|A _ is ten times as long as the one-hundred-year period of a century.|millennium|천 년은 백 년인 한 세기의 열 배다.
+14|mire|진창, 수렁|Last night’s heavy rains have turned the field into a _, delaying the soccer match for several days.|mire|어젯밤 폭우로 경기장이 진창이 되어 축구 경기가 며칠 미뤄졌다.
+14|mire|수렁에 빠뜨리다|The organizers of the race became _ in a bewildering set of rules and regulations.|mired|대회 주최 측은 헷갈리는 규칙과 규정에 발이 묶였다.
+14|pestilence|역병|The _ that swept through Europe in the 1300s killed three-quarters of the population.|pestilence|1300년대에 유럽을 휩쓴 역병은 인구의 4분의 3을 죽였다.
+14|stagnate|침체되다|Students’ minds may _ if they are not challenged.|stagnate|도전을 받지 않으면 학생들의 정신은 침체될 수 있다.
+14|stagnant|고여 있는, 침체된|As we approached the edge of the lake, we found _, muddy water instead of the cold clear ripples we had expected.|stagnant|호숫가에 가 보니 기대한 맑은 물결 대신 고인 흙탕물이 있었다.
+14|sublime|숭고한, 장엄한|Standing on the rim of the Grand Canyon at dawn, we had a _ panorama of the canyon walls changing color in the morning light.|sublime|새벽에 그랜드 캐니언 가장자리에 서서 아침 햇빛에 색이 변하는 협곡의 장엄한 전경을 보았다.
+14|vie|경쟁하다|By January, the top eight schools in the state _ for the debate championship.|vied|1월까지 주의 상위 8개 학교가 토론 우승을 두고 겨뤘다.
+14|voluminous|방대한|The museum will exhibit a select group of bowls and jugs from its _ collection of Pueblo pottery.|voluminous|박물관은 방대한 푸에블로 도자기 소장품 중 엄선한 그릇과 항아리를 전시할 것이다.
+15|ascertain|확인하다, 알아내다|Ms. Jenckes sent Tyrone to _ the cause of the delay.|ascertain|젠크스 씨는 지연 원인을 알아보라고 타이론을 보냈다.
+15|chastise|체벌하다|A hundred years ago disruptive students were _ with a cane.|chastised|백 년 전에는 소란 피우는 학생들이 회초리로 벌을 받았다.
+15|chastise|호되게 꾸짖다|It is embarrassing to be _ in public.|chastised|사람들 앞에서 꾸중 듣는 것은 창피하다.
+15|cull|도태시키다, 솎아내다|Game wardens _ the deer herd when it grows too large for the deer’s food supply.|cull|사슴 무리가 먹이에 비해 너무 커지면 수렵 감시관들이 개체 수를 솎아낸다.
+15|defer|미루다, 연기하다|Timothy _ his decision about which team to join until he could talk to the coaches.|deferred|티모시는 코치들과 이야기할 때까지 어느 팀에 들어갈지 결정을 미뤘다.
+15|defer|(의견에) 따르다|My uncle usually _ to my aunt, who is a doctor, when someone in the family is sick.|defers|가족 중 누가 아프면 삼촌은 대개 의사인 숙모의 의견을 따른다.
+15|deference|존중, 경의|Our parents taught my brother and me to show _ to our elders.|deference|부모님은 우리 형제에게 어른을 공경하라고 가르치셨다.
+15|desist|그만두다|Our principal told us we must _ from talking in study hall.|desist|교장 선생님은 자습실에서 떠들지 말라고 하셨다.
+15|discredit|평판을 떨어뜨리다|Beckham was _ when his own lies were found out.|discredited|베컴은 자신의 거짓말이 드러나자 신용을 잃었다.
+15|discredit|신빙성을 없애다|New scientific evidence often _ earlier theories.|discredits|새로운 과학적 증거는 종종 이전 이론의 신빙성을 떨어뜨린다.
+15|encroach|잠식하다, 침범하다|We pruned the branches of the maple tree that _ on our property.|encroached|우리 땅으로 넘어온 단풍나무 가지를 잘라냈다.
+15|foreboding|불길한 예감|It was with _ that we began to search for the missing kitten.|foreboding|우리는 불길한 예감 속에 잃어버린 새끼 고양이를 찾기 시작했다.
+15|humane|인도적인|What is _ treatment for a horse with a broken leg?|humane|다리가 부러진 말에게 인도적인 처치는 무엇일까?
+15|irrational|비이성적인|As she approached the house, Candace felt an _ fear inside herself.|irrational|그 집에 다가가며 캔디스는 이유 없는 두려움을 느꼈다.
+15|lurid|끔찍한, 충격적인|My parents will not give me permission to see that movie because of several _ scenes it contains.|lurid|끔찍한 장면이 몇 개 있어서 부모님은 그 영화를 못 보게 하실 것이다.
+15|lurid|(하늘 등이) 타는 듯이 붉은|The dense smog gave the rays of the setting sun a _ cast.|lurid|짙은 스모그 때문에 지는 해의 빛이 타는 듯 붉게 보였다.
+15|perpetuate|영속시키다|Your negative attitude toward studying science just _ your inability to get a good grade in the class.|perpetuates|과학 공부에 대한 부정적 태도가 좋은 성적을 못 받는 상태를 계속 이어지게 할 뿐이다.
+15|restive|안절부절못하는|We grew _ as we awaited permission to return to our flooded house.|restive|물에 잠긴 집으로 돌아가도 된다는 허락을 기다리며 우리는 안절부절못했다.
+15|stamina|체력, 지구력|Jill claims that running five miles a day has built up her _.|stamina|질은 하루 5마일 달리기로 체력이 길러졌다고 말한다.
+15|surveillance|감시|Because of the recent incidents of vandalism, the police have put the high school under closer _.|surveillance|최근 기물 파손 사건 때문에 경찰은 그 고등학교를 더 면밀히 감시하고 있다.
+16|alleviate|완화하다|Gargling with saltwater _ a sore throat.|alleviates|소금물 가글은 인후통을 완화한다.
+16|antidote|해독제|Scientists are looking for a snakebite _ that might save thousands of lives.|antidote|과학자들은 수천 명을 살릴 수 있는 뱀독 해독제를 찾고 있다.
+16|antidote|해결책, 위안|Her surprise birthday party was an _ to Anzi’s losing the tennis match.|antidote|깜짝 생일 파티는 테니스 경기에서 진 안지에게 위안이 되었다.
+16|bedlam|대혼란, 아수라장|_ broke out in the auditorium among students and parents when it was announced that the school was going to be closed.|Bedlam|학교가 폐쇄된다는 발표에 강당의 학생과 학부모 사이에 대혼란이 일어났다.
+16|cajole|구슬리다|Willa allowed herself to be _ into acting as class treasurer.|cajoled|윌라는 구슬림에 넘어가 학급 회계를 맡았다.
+16|glib|번지르르한, 말만 그럴듯한|The candidate’s _ responses to questions made it difficult to understand his opinion.|glib|후보의 번지르르한 답변 때문에 그의 의견을 이해하기 어려웠다.
+16|haggard|초췌한|The _ faces of the refugees spoke of many fearful days and sleepless nights.|haggard|난민들의 초췌한 얼굴은 두려운 낮과 잠 못 이룬 밤들을 말해 주었다.
+16|immaculate|티 없이 깨끗한|The dining room’s white linen tablecloths were starched and _ at the beginning of the reception.|immaculate|피로연이 시작될 때 식당의 흰 리넨 식탁보는 빳빳하고 티 없이 깨끗했다.
+16|immaculate|흠 없는|His _ report cards since kindergarten mean that Luis will probably be admitted to any college he applies to.|immaculate|유치원 때부터 흠잡을 데 없는 성적표라 루이스는 아마 어느 대학이든 합격할 것이다.
+16|incessant|끊임없는|We hardly slept because of the _ noise from the apartment downstairs.|incessant|아래층에서 끊임없이 들리는 소음 때문에 거의 못 잤다.
+16|indulgent|너그러운, 다 받아 주는|The _ parents bought their son every video game he asked for.|indulgent|그 너그러운 부모는 아들이 원하는 비디오 게임을 다 사 주었다.
+16|indulge|응석을 받아 주다|My grandparents loved to _ my brothers and me when they came to visit.|indulge|조부모님은 오실 때마다 우리 형제의 응석을 받아 주는 걸 좋아하셨다.
+16|indulge|(욕구를) 채우다|I _ my craving for something sweet by having an ice-cream cone.|indulged|나는 아이스크림콘을 먹으며 단것에 대한 욕구를 채웠다.
+16|loll|느긋하게 기대다|I _ in the hammock for most of that humid summer afternoon.|lolled|그 습한 여름 오후 대부분을 해먹에 늘어져 보냈다.
+16|loll|축 늘어지다|After the storm, the seasick passenger’s head _ over the rail of the ship.|lolled|폭풍이 지난 뒤 뱃멀미하는 승객의 머리가 난간 너머로 축 처졌다.
+16|pittance|쥐꼬리만 한 돈|Even though the summer job pays only a _, I decided to take it because I needed the experience.|pittance|여름 아르바이트 보수는 쥐꼬리만 했지만 경험이 필요해서 하기로 했다.
+16|pungent|톡 쏘는|A _ sauce of pineapple and ginger was served over the pork.|pungent|돼지고기 위에 파인애플과 생강으로 만든 톡 쏘는 소스가 곁들여졌다.
+16|pungent|신랄한|The newspaper editorial contained _ criticism of the committee’s proposed cuts in the city’s education budget.|pungent|신문 사설은 시 교육 예산 삭감안에 대한 신랄한 비판을 담고 있었다.
+16|rue|후회하다|After his outburst, he immediately _ his angry words.|rued|감정을 터뜨린 뒤 그는 곧바로 화난 말을 후회했다.
+16|strident|귀에 거슬리는|The counselor’s _ voice awakened the campers every morning.|strident|상담 선생님의 날카로운 목소리가 매일 아침 캠프 참가자들을 깨웠다.
+16|vehement|격렬한|Their differing beliefs sometimes caused _ arguments between the friends.|vehement|서로 다른 신념 때문에 그 친구들은 가끔 격렬하게 논쟁했다.
+17|accord|일치, 합의|The members of the jury were in _ when the vote was taken.|accord|투표할 때 배심원들의 의견은 일치했다.
+17|affirm|단언하다, 확언하다|My brother will _ that the signature is mine.|affirm|형이 그 서명이 내 것이라고 확인해 줄 것이다.
+17|bequeath|(후세에) 물려주다|Through her example of hard work, our mother has _ to all her children an outstanding work ethic.|bequeathed|어머니는 부지런한 모범을 통해 모든 자녀에게 훌륭한 근면 정신을 물려주셨다.
+17|bequeath|(유언으로) 물려주다|This necklace was _ to me by my grandmother.|bequeathed|이 목걸이는 할머니가 유언으로 내게 남겨 주신 것이다.
+17|bequest|유증, 유산|The will contains a _ of a thousand dollars to a friendly neighbor.|bequest|유언장에는 친절한 이웃에게 1,000달러를 남긴다는 내용이 있다.
+17|citadel|성채, 요새|The old section of Quebec City is surrounded by walls and dominated by a _.|citadel|퀘벡시티 구시가지는 성벽에 둘러싸여 있고 요새가 내려다보고 있다.
+17|confer|수여하다|The school board president _ diplomas upon all the high school graduates.|conferred|교육위원장이 모든 고교 졸업생에게 졸업장을 수여했다.
+17|confer|상의하다|The surgeon _ with her colleague before deciding not to operate on the patient.|conferred|외과의는 수술하지 않기로 결정하기 전에 동료와 상의했다.
+17|coup|대단한 성공|Developing the new arts program was a _ for the young principal.|coup|새 예술 프로그램 개발은 젊은 교장에게 큰 성과였다.
+17|coup|쿠데타|Fidel Castro’s 1959 _ brought communism to the island nation of Cuba.|coup|1959년 피델 카스트로의 쿠데타는 섬나라 쿠바에 공산주의를 들여왔다.
+17|dignitary|고위 인사|_ from the United Nations attended the White House dinner.|Dignitaries|유엔의 고위 인사들이 백악관 만찬에 참석했다.
+17|embroil|(분쟁에) 휘말리게 하다|The two countries were _ in a bitter dispute over where the border between them lay.|embroiled|두 나라는 국경이 어디인지를 두고 격렬한 분쟁에 휘말렸다.
+17|epoch|시대|The _ known as the Cold War, a period of hostility without military conflict between the United States and the Soviet Union, began around 1945 and ended in 1991.|epoch|미국과 소련이 군사 충돌 없이 적대한 냉전 시대는 1945년경 시작해 1991년에 끝났다.
+17|impeccable|흠잡을 데 없는|The ballet dancer’s _ execution of a midair turn elicited cries of “Bravo!” from the audience.|impeccable|발레리나가 공중 회전을 완벽하게 해내자 관객들이 ‘브라보!’를 외쳤다.
+17|institute|도입하다, 시작하다|The new principal _ important changes in class schedules and lunch times.|instituted|새 교장은 시간표와 점심시간에 중요한 변화를 도입했다.
+17|institute|연구소, 협회|Scholars at the _ for Advanced Study in Princeton, New Jersey, conduct research in mathematics, physics, and historical and social sciences.|Institute|뉴저지주 프린스턴 고등연구소의 학자들은 수학, 물리학, 역사·사회과학을 연구한다.
+17|patriarch|가장, 족장|The Bedouins, nomadic desert tribes of Northern Africa, form extended families headed by _.|patriarchs|북아프리카 사막 유목 부족인 베두인족은 가장이 이끄는 대가족을 이룬다.
+17|rapport|친밀한 관계, 유대감|Successful speakers quickly establish a _ with the audience.|rapport|성공하는 연설가는 청중과 빠르게 유대감을 쌓는다.
+17|renounce|포기하다, 끊다|We _ eating meat when we became vegetarians.|renounced|채식주의자가 되면서 우리는 고기를 끊었다.
+17|renunciation|포기|Acceptance into the animal-rights group meant the _ of wearing leather and fur clothing.|renunciation|동물권 단체 가입은 가죽과 모피 옷을 포기한다는 뜻이었다.
+17|rhetoric|수사학|We studied _ to improve our debating skills.|rhetoric|우리는 토론 실력을 키우려고 수사학을 공부했다.
+17|rhetoric|미사여구, 빈말|Because it offered no practical solutions to inner-city housing problems, the mayor’s speech was mere _.|rhetoric|도심 주택 문제에 실질적 해결책이 없었기에 시장의 연설은 그저 빈말이었다.
+18|aperture|구멍|Tony could see an eye peering at him through a small _ in the door.|aperture|토니는 문의 작은 구멍으로 자신을 엿보는 눈을 볼 수 있었다.
+18|cache|은닉처|A hollowed-out book provided a _ for the family’s jewels.|cache|속을 파낸 책이 가족 보석의 은닉처였다.
+18|cache|숨겨 둔 물건|I found my sister’s _ of marbles in the back of the closet.|cache|옷장 안쪽에서 동생이 숨겨 둔 구슬을 찾았다.
+18|combustible|불이 잘 붙는|Don’t store _ rags near the furnace.|combustible|불붙기 쉬운 걸레를 보일러 근처에 두지 마라.
+18|delegate|대표(자)|_ from each section of the state attended the meeting on water conservation in the capital.|Delegates|주 각 지역의 대표들이 주도에서 열린 수자원 보존 회의에 참석했다.
+18|delegate|위임하다|Mr. Juarez _ to Karen and me the task of lining up the music for our school dance.|delegated|후아레즈 선생님은 학교 댄스파티 음악 준비를 카렌과 나에게 맡기셨다.
+18|inclement|(날씨가) 궂은|We had such _ weather on the scheduled day of our field trip to the zoo that we postponed it to the following week.|inclement|동물원 견학 날 날씨가 너무 궂어서 다음 주로 미뤘다.
+18|inclement|가혹한, 무자비한|The preschool teacher’s decision to place the crying child in the corner of the room all morning seemed like an _ action.|inclement|우는 아이를 아침 내내 구석에 세워 둔 유치원 교사의 결정은 가혹해 보였다.
+18|indelible|지울 수 없는|The beauty of Venice made an _ impression on the visitors.|indelible|베네치아의 아름다움은 방문객들에게 지울 수 없는 인상을 남겼다.
+18|malady|병, 질병|Malaria is a _ prevalent in tropical areas.|malady|말라리아는 열대 지역에 흔한 질병이다.
+18|memoir|회고록|The Civil War anthology contains a moving _ by a young Union officer.|memoir|그 남북전쟁 선집에는 젊은 북군 장교의 감동적인 회고록이 실려 있다.
+18|paramount|가장 중요한|It is _ that my mother receive this message before she leaves the house at 5:00 p.m.|paramount|엄마가 오후 5시에 집을 나서기 전에 이 메시지를 받는 것이 가장 중요하다.
+18|rectify|바로잡다|The teacher _ his grading error on my mid-year project by adjusting my final grade.|rectified|선생님은 최종 성적을 조정해 내 학기 중 프로젝트의 채점 오류를 바로잡으셨다.
+18|requisite|필요한, 필수의|When Aunt Mercedes completes the _ two-year course, she plans to become a travel agent.|requisite|메르세데스 이모는 필수 2년 과정을 마치면 여행사 직원이 될 계획이다.
+18|requisite|필수 조건|Our teacher always insists that a sharp pencil and a sharp mind are the two _ for taking a test.|requisites|선생님은 늘 잘 깎은 연필과 맑은 정신이 시험의 두 가지 필수 조건이라고 하신다.
+18|squeamish|비위가 약한|There is no reason to feel _ about giving blood.|squeamish|헌혈한다고 메스꺼워할 이유는 없다.
+18|tract|넓은 지역|The students developed a _ of land in the center of the city for a vegetable garden.|tract|학생들은 도심의 넓은 땅을 채소밭으로 일궜다.
+18|tract|(신체의) 관, 계|The esophagus and stomach are part of the digestive _.|tract|식도와 위는 소화관의 일부다.
+18|tract|소책자, 팸플릿|Volunteers handed out _ on legal reform.|tracts|자원봉사자들이 사법 개혁에 관한 소책자를 나눠 주었다.
+18|tribulation|고난, 시련|The recession of 2008 caused much _ for those who lost their jobs.|tribulation|2008년 경기 침체는 일자리를 잃은 사람들에게 큰 고난을 안겼다.
+18|vignette|짧은 묘사, 짧은 장면|The movie begins with a series of _ about life in Los Angeles.|vignettes|그 영화는 로스앤젤레스의 삶을 보여 주는 짧은 장면들로 시작한다.
+19|bulwark|방벽|A wall of sandbags acted as a _ against the rising floodwaters.|bulwark|모래주머니 벽이 불어나는 홍수를 막는 방벽 역할을 했다.
+19|bulwark|보루, 수호자|The Bill of Rights of our Constitution is a _ of our individual liberties.|bulwark|헌법의 권리장전은 개인의 자유를 지키는 보루다.
+19|culminate|절정에 이르다|The Fourth of July celebrations _ in a spectacular fireworks display.|culminated|7월 4일 기념행사는 화려한 불꽃놀이로 절정에 이르렀다.
+19|culmination|정점, 결정체|Winning the Nobel Prize was the _ of the scientist’s long and distinguished career.|culmination|노벨상 수상은 그 과학자의 길고 빛나는 경력의 정점이었다.
+19|engulf|완전히 삼키다|During the hurricane, a huge wave _ the boat and almost swept the crew overboard.|engulfed|허리케인 때 거대한 파도가 배를 덮쳐 선원들이 바다로 휩쓸려 갈 뻔했다.
+19|feasible|실현 가능한|Building a new library is _ if the town allots sufficient funds for it.|feasible|마을이 충분한 예산을 배정하면 새 도서관 건립은 가능하다.
+19|glut|과잉|A _ of office space in downtown buildings resulted in a sharp drop in rents.|glut|도심 사무실 공간이 넘쳐나 임대료가 급락했다.
+19|glut|과잉 공급하다|The weather was so ideal that California’s growers _ the market with strawberries.|glutted|날씨가 너무 좋아서 캘리포니아 농부들이 시장에 딸기를 넘치게 공급했다.
+19|glut|실컷 먹다|Sitting under the heavily laden branches, we _ ourselves on ripe peaches.|glutted|열매가 주렁주렁한 가지 아래 앉아 우리는 잘 익은 복숭아를 배불리 먹었다.
+19|havoc|대파괴|This morning we warily surveyed the _ caused by yesterday’s storm.|havoc|오늘 아침 우리는 어제 폭풍이 남긴 큰 피해를 조심스럽게 살폈다.
+19|havoc|대혼란|When the rabbits escaped from their cages, they created _ in Mrs. Tsai’s classroom.|havoc|토끼들이 우리를 탈출하자 차이 선생님 교실이 난장판이 되었다.
+19|impregnable|난공불락의|The citadel was _ because of its hilltop location and strong defenses.|impregnable|그 요새는 언덕 꼭대기에 있고 방어가 튼튼해 난공불락이었다.
+19|indefatigable|지칠 줄 모르는|Rescuers were _ in their all-night efforts to reach the trapped miners.|indefatigable|구조대원들은 갇힌 광부들에게 닿기 위해 밤새 지칠 줄 모르고 애썼다.
+19|onslaught|맹공격|The Union _ at Gettysburg stopped General Robert E. Lee’s invasion of Pennsylvania.|onslaught|게티즈버그에서 북군의 맹공이 로버트 E. 리 장군의 펜실베이니아 침공을 막았다.
+19|phenomenon|현상|The aurora borealis, or northern lights, is a _ visible in the night sky in the far north.|phenomenon|북극광은 먼 북쪽 밤하늘에서 볼 수 있는 현상이다.
+19|phenomenon|경이로운 사람·것|Publishing her first novel when she was eighty-five made her a publishing _.|phenomenon|85세에 첫 소설을 낸 그녀는 출판계의 경이로운 인물이 되었다.
+19|phenomenal|경이적인|You must have a _ memory to remember all those names after hearing them just once!|phenomenal|그 이름들을 한 번 듣고 다 기억하다니 기억력이 놀랍구나!
+19|picturesque|그림 같은|My favorite painting was of a _ old cottage with roses climbing its walls.|picturesque|내가 제일 좋아한 그림은 장미가 벽을 타고 오르는 그림 같은 오두막이었다.
+19|simultaneous|동시의|When the thunder and lightning are almost _, the storm is very close to you.|simultaneous|천둥과 번개가 거의 동시에 치면 폭풍이 아주 가까이 있는 것이다.
+19|stipulate|(조건으로) 명시하다|My agreement with my coach _ that I need to keep a certain grade point average in order to stay on the team.|stipulates|코치와의 약속에는 팀에 남으려면 일정 평점을 유지해야 한다고 명시되어 있다.
+19|susceptible|영향받기 쉬운|Because I have hay fever, I am very _ to ragweed pollen.|susceptible|나는 꽃가루 알레르기가 있어서 돼지풀 꽃가루에 매우 민감하다.
+19|wrest|비틀어 빼앗다|Tamika _ the ball from the player on the opposing team.|wrested|타미카는 상대 팀 선수에게서 공을 빼앗았다.
+19|wrest|억지로 빼앗다|The parents _ control of the school board away from the previous members.|wrested|학부모들은 기존 위원들로부터 학교 운영위원회 통제권을 빼앗았다.
+20|alienate|멀어지게 하다, 반감을 사다|Be careful not to _ voters, because we need their support.|alienate|유권자들의 지지가 필요하니 그들이 등 돌리지 않게 조심해라.
+20|alienate|소외시키다|Her year out of school had _ Ruby from her classmates.|alienated|1년간 학교를 쉬는 동안 루비는 반 친구들과 멀어졌다.
+20|fervent|열렬한|Looking meaningfully at the jury, the lawyer made a _ plea for his client’s life.|fervent|변호사는 배심원을 의미심장하게 바라보며 의뢰인의 목숨을 위해 열렬히 호소했다.
+20|fervor|열정, 열렬|Romeo addressed Juliet with such _ that her eyes filled with tears.|fervor|로미오가 너무나 열렬하게 말해서 줄리엣의 눈에 눈물이 고였다.
+20|forbearance|인내, 관용|With unusual _, the principal asked the unruly student to explain the reason for his vandalism.|forbearance|교장은 평소와 달리 참을성 있게 말썽꾸러기 학생에게 기물 파손 이유를 물었다.
+20|forbear|참다, 삼가다|My mother asked me to _ revealing to my younger brothers that Abuela was ill.|forbear|엄마는 할머니가 편찮으시다는 걸 동생들에게 말하지 말아 달라고 하셨다.
+20|gullible|잘 속는|I was _ enough to believe him when he said he would be on time.|gullible|나는 너무 잘 속아서 그가 제시간에 오겠다는 말을 믿었다.
+20|hindrance|방해(물)|Heavy traffic on the expressway is always a _ to my getting to school on time.|hindrance|고속도로 교통 체증은 늘 제시간 등교를 방해한다.
+20|inflammatory|선동적인|Even though the defendant’s rhetoric was _, the Supreme Court upheld his right to freedom of speech.|inflammatory|피고인의 언사가 선동적이었지만 대법원은 그의 언론 자유를 인정했다.
+20|inflame|격분시키다|The principal’s refusal to listen to our concerns _ us to the point of shouting.|inflamed|교장이 우리 우려를 들으려 하지 않자 우리는 소리를 지를 만큼 격분했다.
+20|inflame|염증을 일으키다|Try not to rub your eye; it will just _ it.|inflame|눈을 비비지 마. 염증만 더 생겨.
+20|ordain|규정하다, 정하다|The U.S. Constitution _ three separate branches of government: the executive, the legislative, and the judicial.|ordains|미국 헌법은 행정·입법·사법 세 개의 독립된 정부 기관을 규정한다.
+20|ordain|성직자로 임명하다|She hopes to work in the villages in Chiapas once she is _.|ordained|그녀는 서품을 받으면 치아파스의 마을들에서 일하기를 바란다.
+20|ovation|박수갈채|When the pianist stepped onto the stage, the audience rose with a spontaneous _.|ovation|피아니스트가 무대에 오르자 청중이 저절로 일어나 박수갈채를 보냈다.
+20|overt|공공연한, 명백한|After months of making small hints about my clothes, my older sister finally made an _ offer to buy me a new spring wardrobe.|overt|몇 달간 내 옷에 대해 은근히 말하던 언니가 마침내 봄옷을 사 주겠다고 대놓고 제안했다.
+20|recant|철회하다|After he talked to a lawyer, the young man _ his confession and pleaded “not guilty.”|recanted|변호사와 상담한 뒤 청년은 자백을 철회하고 무죄를 주장했다.
+20|rejoinder|재치 있는 응수|Uncle Paco was famous in our family for his funny, sharp _.|rejoinders|파코 삼촌은 재치 있고 날카로운 응수로 우리 가족 사이에서 유명했다.
+20|reproach|나무라다|My mother _ me for forgetting my little brother’s birthday.|reproached|엄마는 내가 남동생 생일을 잊었다고 나무라셨다.
+20|reproach|비난, 흠|When my grandmother died at the age of ninety-four, she had lived a life that was above _.|reproach|할머니는 아흔넷에 돌아가셨을 때 흠잡을 데 없는 삶을 사셨다.
+20|servile|굽실거리는|Mari’s _ attention to the teacher was her way of trying to get a good grade.|servile|마리가 선생님께 굽실거린 것은 좋은 성적을 받으려는 방법이었다.
+20|surpass|능가하다|The fact that Marta finished her first marathon _ her wildest dreams.|surpassed|마르타가 첫 마라톤을 완주한 것은 그녀의 가장 큰 꿈마저 뛰어넘었다.
+20|vilify|비방하다|The candidates for governor agreed not to _ each other in their commercials.|vilify|주지사 후보들은 광고에서 서로 비방하지 않기로 합의했다.`;
+
+/* ---------- data ---------- */
+const ITEMS=RAW.trim().split("\n").map((l,i)=>{const [L,w,m,s,a,k]=l.split("|");return{id:"b"+i,L:+L,w,m,s,a,k}});
+const LESSONS=[...new Set(ITEMS.map(x=>x.L))];
+const WORDS=[];{const map=new Map();ITEMS.forEach(it=>{const key=it.L+"|"+it.w;if(!map.has(key)){const g={key,L:it.L,w:it.w,senses:[]};map.set(key,g);WORDS.push(g)}map.get(key).senses.push(it)});
+  WORDS.forEach(g=>{g.mean=[...new Set(g.senses.map(s=>s.m))].join(" / ")})}
+const ITEM_BY=new Map(ITEMS.map(x=>[x.id,x])), WORD_BY=new Map(WORDS.map(g=>[g.key,g]));
+const wordOf=it=>WORD_BY.get(it.L+"|"+it.w);
+
+/* ---------- saved review state (this browser only) ---------- */
+const KEY="ww8-study-v2";
+const S={rv:new Set(),wb:new Set(),wm:new Set(),wu:new Set()};   // wu: 쓰임 오답(item id of the altered sentence)   // rv: 다시 볼 카드(word key) · wb: 빈칸 오답(item id) · wm: 뜻 오답(word key)
+try{
+  const d=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(d){S.rv=new Set((d.rv||[]).filter(k=>WORD_BY.has(k)));S.wb=new Set((d.wb||[]).filter(k=>ITEM_BY.has(k)));S.wm=new Set((d.wm||[]).filter(k=>WORD_BY.has(k)));S.wu=new Set((d.wu||[]).filter(k=>ITEM_BY.has(k)))}
+  else{const old=JSON.parse(localStorage.getItem("ww8-review-v1")||"[]");if(Array.isArray(old))S.rv=new Set(old.filter(k=>WORD_BY.has(k)))}
+}catch(_){}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({rv:[...S.rv],wb:[...S.wb],wm:[...S.wm],wu:[...S.wu]}))}catch(_){} counts()}
+const wrongTotal=()=>S.wb.size+S.wm.size+S.wu.size;
+function counts(){
+  const set=(id,n)=>{const el=$(id);el.textContent=n;el.classList.toggle("zero",!n)};
+  set("rvCnt",S.rv.size); set("wrCnt",wrongTotal());
+}
+
+/* ---------- helpers ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const filled=it=>esc(it.s).replace("_",`<b>${esc(it.a)}</b>`);
+function hintFor(it){const a=it.a.toLowerCase(),w=it.w.toLowerCase();if(a===w)return"";if(a.endsWith("ing"))return"-ing";if(a.endsWith("ed"))return"과거·p.p.";if(a.endsWith("s"))return"-s / 복수";return""}
+const reduce=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+function show(id){["home","cards","quiz","result"].forEach(x=>$(x).hidden=x!==id);window.scrollTo(0,0)}
+
+/* ---------- home ---------- */
+const H={mode:"card",lessons:new Set(LESSONS),n:20};
+function renderHome(){
+  document.querySelectorAll("#home .tile").forEach(t=>t.setAttribute("aria-pressed",t.dataset.mode===H.mode));
+  const all=H.lessons.size===LESSONS.length;
+  $("lessons").innerHTML=`<button class="chip" data-l="all" aria-pressed="${all}">전체</button>`+LESSONS.map(L=>`<button class="chip" data-l="${L}" aria-pressed="${!all&&H.lessons.has(L)}">${L}</button>`).join("");
+  document.querySelectorAll("#counts .chip").forEach(c=>c.setAttribute("aria-pressed",+c.dataset.n===H.n));
+  const m=H.mode, quiz=m==="blank"||m==="mean"||m==="use";
+  $("optLesson").hidden=!(m==="card"||quiz);
+  $("optCount").hidden=!quiz;
+  $("rvPane").hidden=m!=="rv"; $("wrPane").hidden=m!=="wr";
+  const sb=$("startBtn"); sb.hidden=false; sb.disabled=false;
+  if(m==="card") sb.textContent="카드 보기";
+  else if(quiz) sb.textContent="문제 풀기";
+  else if(m==="rv"){ renderRvPane(); sb.textContent=S.rv.size?`다시 볼 카드 ${S.rv.size}개 보기`:"아직 다시 볼 카드가 없어요"; sb.disabled=!S.rv.size; }
+  else { renderWrPane(); sb.hidden=true; }
+  counts();
+}
+function renderRvPane(){
+  const list=WORDS.filter(g=>S.rv.has(g.key));
+  $("rvPane").innerHTML=list.length?`<div class="label">모아 둔 단어 ${list.length}개</div><ul class="wlist">${list.map(g=>`<li><span class="w">${esc(g.w)}</span><span class="tag">L${g.L}</span><span class="m">${esc(g.mean)}</span><button class="x" data-rmrv="${esc(g.key)}">빼기</button></li>`).join("")}</ul>`
+    :`<p class="note">카드를 넘길 때 ‘다시 볼래요’를 누르면 여기에 모여요. 여기서 ‘외웠어요’를 누르면 목록에서 빠져요.</p>`;
+}
+function renderWrPane(){
+  const nb=S.wb.size, nm=S.wm.size, nu=S.wu.size;
+  if(!nb&&!nm&&!nu){$("wrPane").innerHTML=`<p class="note">빈칸 채우기나 뜻 맞추기에서 틀린 문제가 자동으로 여기에 저장돼요. 오답 노트에서 다시 풀어 맞히면 목록에서 빠져요.</p>`;return}
+  const bl=ITEMS.filter(x=>S.wb.has(x.id)), ml=WORDS.filter(g=>S.wm.has(g.key)), ul=ITEMS.filter(x=>S.wu.has(x.id));
+  const words=new Set([...bl.map(x=>wordOf(x).key),...ml.map(g=>g.key),...ul.map(x=>wordOf(x).key)]);
+  $("wrPane").innerHTML=`<div class="btns">
+      <button class="btn" data-wr="all">틀린 문제 ${nb+nm+nu}개 전부 다시 풀기</button>
+      <div class="three">
+        <button class="btn ghost small" data-wr="blank" ${nb?"":"disabled"}>빈칸 ${nb}</button>
+        <button class="btn ghost small" data-wr="mean" ${nm?"":"disabled"}>뜻 ${nm}</button>
+        <button class="btn ghost small" data-wr="use" ${nu?"":"disabled"}>쓰임 ${nu}</button>
+      </div>
+      <button class="btn ghost small" data-wr="cards">틀린 단어 ${words.size}개 카드로 보기</button>
+    </div>
+    <div>
+      <div class="label" style="margin-top:6px">저장된 오답</div>
+      <ul class="wlist">
+        ${bl.map(x=>`<li><span class="tag t">빈칸</span><span class="w">${esc(x.w)}</span><span class="m">${esc(x.m)}</span><button class="x" data-rmwb="${x.id}">빼기</button></li>`).join("")}
+        ${ul.map(x=>`<li><span class="tag t">쓰임</span><span class="w">${esc(x.w)}</span><span class="m">${esc(x.m)}</span><button class="x" data-rmwu="${x.id}">빼기</button></li>`).join("")}
+        ${ml.map(g=>`<li><span class="tag t">뜻</span><span class="w">${esc(g.w)}</span><span class="m">${esc(g.mean)}</span><button class="x" data-rmwm="${esc(g.key)}">빼기</button></li>`).join("")}
+      </ul>
+    </div>`;
+}
+$("home").addEventListener("click",e=>{
+  const t=e.target.closest("[data-mode]"); if(t){H.mode=t.dataset.mode;renderHome();return}
+  const l=e.target.closest("[data-l]");
+  if(l){const v=l.dataset.l;
+    if(v==="all")H.lessons=new Set(LESSONS);
+    else{const L=+v;if(H.lessons.size===LESSONS.length)H.lessons=new Set([L]);else if(H.lessons.has(L)){H.lessons.delete(L);if(!H.lessons.size)H.lessons=new Set(LESSONS)}else H.lessons.add(L)}
+    renderHome();return}
+  const c=e.target.closest("[data-n]"); if(c){H.n=+c.dataset.n;renderHome();return}
+  const r1=e.target.closest("[data-rmrv]"); if(r1){S.rv.delete(r1.dataset.rmrv);persist();renderHome();return}
+  const r2=e.target.closest("[data-rmwb]"); if(r2){S.wb.delete(r2.dataset.rmwb);persist();renderHome();return}
+  const r4=e.target.closest("[data-rmwu]"); if(r4){S.wu.delete(r4.dataset.rmwu);persist();renderHome();return}
+  const r3=e.target.closest("[data-rmwm]"); if(r3){S.wm.delete(r3.dataset.rmwm);persist();renderHome();return}
+  const w=e.target.closest("[data-wr]");
+  if(w){const k=w.dataset.wr;
+    const qb=ITEMS.filter(x=>S.wb.has(x.id)).map(it=>({type:"blank",it})), qm=WORDS.filter(g=>S.wm.has(g.key)).map(it=>({type:"mean",it})), qu=ITEMS.filter(x=>S.wu.has(x.id)).map(it=>({type:"use",it}));
+    if(k==="cards"){const ks=new Set([...qb.map(q=>wordOf(q.it).key),...qm.map(q=>q.it.key),...qu.map(q=>wordOf(q.it).key)]);startCards(WORDS.filter(g=>ks.has(g.key)),true,"오답 단어")}
+    else startQuiz(k==="blank"?qb:k==="mean"?qm:k==="use"?qu:[...qb,...qm,...qu],"오답 노트");
+  }
+});
+$("startBtn").addEventListener("click",()=>{
+  const m=H.mode;
+  if(m==="card") startCards(WORDS.filter(g=>H.lessons.has(g.L)),false,"단어 카드");
+  else if(m==="rv"){ if(S.rv.size) startCards(WORDS.filter(g=>S.rv.has(g.key)),true,"다시 볼 카드"); }
+  else if(m==="blank"||m==="mean"||m==="use"){
+    let pool=m==="mean"?WORDS.filter(g=>H.lessons.has(g.L)):ITEMS.filter(x=>H.lessons.has(x.L));
+    pool=shuffle(pool); if(H.n) pool=pool.slice(0,H.n);
+    startQuiz(pool.map(it=>({type:m,it})),{blank:"빈칸 채우기",mean:"뜻 맞추기",use:"어색한 쓰임"}[m]);
+  }
+});
+document.querySelectorAll("[data-home]").forEach(b=>b.addEventListener("click",goHome));
+function goHome(){show("home");renderHome()}
+
+/* ---------- cards ---------- */
+const C={deck:[],i:0,flipped:false,again:[],hist:[],name:""};
+function startCards(list,shuf,name){
+  Object.assign(C,{deck:shuf?shuffle(list):list.slice(),i:0,flipped:false,again:[],hist:[],name});
+  show("cards"); renderCard();
+}
+function renderCard(){
+  const g=C.deck[C.i];
+  $("cTag").textContent=`${C.name} · L${g.L}`;
+  $("cNum").textContent=`${C.i+1} / ${C.deck.length}`;
+  $("cProg").style.width=(C.i/C.deck.length*100)+"%";
+  $("cPrev").disabled=C.i===0;
+  const badge=S.rv.has(g.key)?`<span class="rvbadge">다시 볼 카드</span>`:"";
+  $("fc").innerHTML=badge+(!C.flipped
+    ?`<div class="front"><div class="big">${esc(g.w)}</div><div class="sub">뜻 ${g.senses.length}개</div><div class="tap">눌러서 뜻과 예문 보기</div></div>`
+    :`<div class="fhead"><span class="w">${esc(g.w)}</span><span class="tap">앞면</span></div><div class="senses">${g.senses.map((s,i)=>`<div class="sense"><div class="n">${i+1}</div><div class="m">${esc(s.m)}</div><div class="ex">${filled(s)}</div><div class="ko">${esc(s.k)}</div></div>`).join("")}</div>`);
+}
+function flip(){C.flipped=!C.flipped;renderCard();const fc=$("fc");fc.classList.remove("anim");void fc.offsetWidth;fc.classList.add("anim")}
+$("fc").addEventListener("click",flip);
+function cardNext(knew){
+  const g=C.deck[C.i];
+  C.hist.push({g,had:S.rv.has(g.key),knew});
+  if(knew) S.rv.delete(g.key); else {S.rv.add(g.key);C.again.push(g)}
+  persist();
+  C.i++; C.flipped=false; window.scrollTo(0,0);
+  if(C.i>=C.deck.length) return cardsDone();
+  renderCard();
+}
+function cardPrev(){
+  if(!C.i) return;
+  const h=C.hist.pop(); if(h){h.had?S.rv.add(h.g.key):S.rv.delete(h.g.key); if(!h.knew)C.again.pop(); persist()}
+  C.i--; C.flipped=false; renderCard();
+}
+$("cKnow").addEventListener("click",()=>cardNext(true));
+$("cAgain").addEventListener("click",()=>cardNext(false));
+$("cPrev").addEventListener("click",cardPrev);
+function cardsDone(){
+  show("result");
+  const n=C.again.length, tot=C.deck.length, again=C.again.slice(), deck=C.deck.slice();
+  $("result").innerHTML=`<div class="label">${esc(C.name)} 한 바퀴 끝</div>
+    <p class="score">${tot-n} / ${tot}</p>
+    <p class="note">외웠어요 ${tot-n}개 · 다시 볼래요 ${n}개</p>
+    <div class="btns">
+      ${n?`<button class="btn" id="rA">이번에 ‘다시 볼래요’ 누른 ${n}개 바로 보기</button>`:""}
+      ${S.rv.size?`<button class="btn ghost" id="rR">모아 둔 다시 볼 카드 ${S.rv.size}개 보기</button>`:`<p class="note">모아 둔 다시 볼 카드가 없어요.</p>`}
+      <button class="btn ghost" id="rS">이번 카드 섞어서 다시 보기</button>
+      <button class="btn ghost" id="rH">처음으로</button>
+    </div>
+    ${n?`<div><div class="label">다시 볼 단어</div><ul class="wlist">${again.map(g=>`<li><span class="w">${esc(g.w)}</span><span class="tag">L${g.L}</span><span class="m">${esc(g.mean)}</span></li>`).join("")}</ul></div>`:""}`;
+  if(n)$("rA").onclick=()=>startCards(again,true,"다시 볼 카드");
+  if(S.rv.size)$("rR").onclick=()=>startCards(WORDS.filter(g=>S.rv.has(g.key)),true,"다시 볼 카드");
+  $("rS").onclick=()=>startCards(deck,true,C.name);
+  $("rH").onclick=goHome;
+}
+
+/* ---------- quiz ---------- */
+const Q={list:[],i:0,score:0,wrong:[],done:false,correct:"",name:""};
+function startQuiz(list,name){
+  Object.assign(Q,{list:shuffle(list),i:0,score:0,wrong:[],done:false,name});
+  show("quiz"); renderQ();
+}
+function distractors(word,lesson,k,field,correct){
+  let src=WORDS.filter(g=>g.L===lesson&&g.w!==word);
+  const out=[],seen=new Set([correct]);
+  const take=arr=>{for(const g of shuffle(arr)){const v=g[field];if(g.w===word||seen.has(v))continue;seen.add(v);out.push(v);if(out.length===k)return}};
+  take(src); if(out.length<k) take(WORDS);
+  return out;
+}
+/* 어색한 쓰임: 4 textbook sentences as written + the target sentence with another word from its lesson swapped in */
+const ADJ=new Set("benign discerning grotesque hallowed malevolent ornate pastoral precarious renowned affluent arbitrary irksome ostentatious prestigious prolific reticent ardent contagious innovative synonymous congenial enigmatic ineffectual infallible irrepressible luminous stagnant sublime voluminous humane irrational lurid restive glib haggard immaculate incessant indulgent pungent strident vehement impeccable combustible inclement indelible paramount requisite squeamish feasible impregnable indefatigable phenomenal picturesque simultaneous susceptible fervent gullible inflammatory overt servile".split(" "));
+const pos=x=>x.m.trim().endsWith("다")?"v":(ADJ.has(x.w)&&!(x.w==="requisite"&&x.a!=="requisite"))?"a":"n";
+const fam=w=>w.toLowerCase().slice(0,4);
+const formClass=a=>{a=a.toLowerCase();if(/^[A-Z]/.test(a))a=a.toLowerCase();return a.endsWith("ing")?"ing":a.endsWith("ed")?"ed":a.endsWith("s")?"s":"base"};
+const cap=(s,like)=>/^[A-Z]/.test(like)?s[0].toUpperCase()+s.slice(1):s.toLowerCase();
+function buildUse(odd){
+  const used=new Set([fam(odd.w)]);
+  const near=ITEMS.filter(x=>x.L===odd.L), far=ITEMS.filter(x=>x.L!==odd.L);
+  // replacement: different word family from the same lesson, same grammatical form when possible
+  const before=odd.s.split("_")[0];
+  const art=/\ban\s*$/i.test(before)?"vowel":/\ba\s*$/i.test(before)?"cons":"";
+  const artOk=x=>!art||(art==="vowel")===/^[aeiou]/i.test(x.a);
+  const shape=x=>pos(x)+(pos(x)==="a"?"":formClass(x.a));
+  const want=shape(odd);
+  const ok=x=>!used.has(fam(x.w))&&artOk(x);
+  const rep=shuffle(near).find(x=>ok(x)&&shape(x)===want)
+         ||shuffle(far).find(x=>ok(x)&&shape(x)===want)
+         ||shuffle(near).find(x=>ok(x)&&pos(x)===pos(odd))
+         ||shuffle(ITEMS).find(x=>ok(x)&&pos(x)===pos(odd))
+         ||shuffle(near).find(ok);
+  used.add(fam(rep.w));
+  const others=[];
+  for(const x of [...shuffle(near),...shuffle(far)]){ if(used.has(fam(x.w))) continue; used.add(fam(x.w)); others.push(x); if(others.length===4) break; }
+  const repWord=cap(rep.a,odd.a);
+  const rows=shuffle([{it:odd,word:repWord,odd:true},...others.map(it=>({it,word:it.a,odd:false}))]);
+  return {rows,rep,repWord};
+}
+const uline=(it,word)=>esc(it.s).replace("_",`<span class="uw">${esc(word)}</span>`);
+function renderQ(){
+  const q=Q.list[Q.i], it=q.it; Q.done=false;
+  $("qTag").textContent=`${Q.name} · L${it.L}`;
+  $("qNum").textContent=`${Q.i+1} / ${Q.list.length} · 맞음 ${Q.score}`;
+  $("qProg").style.width=(Q.i/Q.list.length*100)+"%";
+  $("qFb").innerHTML=""; $("qDock").hidden=true;
+  let opts,en;
+  if(q.type==="blank"){
+    const h=hintFor(it);
+    $("qBody").innerHTML=`<div class="qtype">빈칸에 알맞은 단어는?</div><p class="sent">${esc(it.s).replace("_",`<span class="blank"></span>${h?`<span class="hint">${h}</span>`:""}`)}</p>`;
+    Q.correct=it.w; opts=shuffle([it.w,...distractors(it.w,it.L,4,"w",it.w)]); en=true;
+  }else if(q.type==="use"){
+    q.u=buildUse(it);
+    $("qBody").innerHTML=`<div class="qtype">밑줄 친 단어의 쓰임이 <u>어색한</u> 문장은?</div>`;
+    Q.correct="odd";
+    $("qOpts").innerHTML=`<div class="opts use">${q.u.rows.map((r,i)=>`<button class="opt" data-o="${r.odd?"odd":"ok"+i}"><span class="ol">${i+1}</span><span class="ot">${uline(r.it,r.word)}</span></button>`).join("")}</div>`;
+    return;
+  }else{
+    $("qBody").innerHTML=`<div class="qtype" style="text-align:center">이 단어의 뜻은?</div><div class="qword">${esc(it.w)}</div>`;
+    Q.correct=it.mean; opts=shuffle([it.mean,...distractors(it.w,it.L,4,"mean",it.mean)]); en=false;
+  }
+  $("qOpts").innerHTML=`<div class="opts${en?" en-grid":""}">${opts.map((o,i)=>`<button class="opt${en?" en":""}" data-o="${esc(o)}"><span class="ol">${i+1}</span><span class="ot">${esc(o)}</span></button>`).join("")}</div>`;
+}
+$("qOpts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b)});
+function answer(b){
+  if(Q.done) return; Q.done=true;
+  const q=Q.list[Q.i], it=q.it, ok=b.dataset.o===Q.correct;
+  $("qOpts").querySelectorAll(".opt").forEach(x=>{x.disabled=true;if(x.dataset.o===Q.correct)x.classList.add("ok");else if(x!==b)x.classList.add("dim")});
+  if(!ok) b.classList.add("bad");
+  const set=q.type==="blank"?S.wb:q.type==="use"?S.wu:S.wm, key=q.type==="mean"?it.key:it.id, had=set.has(key);
+  let tag="";
+  if(ok){Q.score++; if(had){set.delete(key);tag="오답 노트에서 뺐어요"}}
+  else {Q.wrong.push(q); set.add(key); tag=had?"오답 노트에 있어요":"오답 노트에 저장"}
+  persist();
+  $("qNum").textContent=`${Q.i+1} / ${Q.list.length} · 맞음 ${Q.score}`;
+  let body;
+  if(q.type==="use"){
+    const {rep,repWord}=q.u;
+    body=`<div>어색한 문장: <span class="strike">${esc(repWord)}</span> → <span class="fword">${esc(it.a)}</span></div>
+      <div class="ex">${filled(it)}</div><div class="ko">${esc(it.k)}</div>
+      <div><span class="fword">${esc(it.w)}</span> · ${esc(it.m)}</div>
+      <div class="ko">잘못 들어간 <b>${esc(rep.w)}</b>: ${esc(wordOf(rep).mean)}</div>`;
+  }else if(q.type==="blank"){
+    $("qBody").querySelector(".sent").innerHTML=filled(it);
+    body=`<div><span class="fword">${esc(it.w)}</span> · ${esc(it.m)}</div><div class="ko">${esc(it.k)}</div>`;
+  }else{
+    body=`<div><span class="fword">${esc(it.w)}</span> · ${esc(it.mean)}</div>`+it.senses.map(s=>`<div class="ex">${filled(s)}</div><div class="ko">${esc(s.k)}</div>`).join("");
+  }
+  $("qFb").innerHTML=`<div class="fb ${ok?"ok":"bad"}"><div class="verdict"><span>${ok?"정답":"오답"}</span>${tag?`<span class="saved">${tag}</span>`:""}</div>${body}</div>`;
+  $("nextBtn").textContent=Q.i===Q.list.length-1?"결과 보기":"다음";
+  $("qDock").hidden=false;
+  $("nextBtn").focus({preventScroll:true});
+  $("qFb").scrollIntoView({behavior:reduce()?"auto":"smooth",block:"nearest"});
+}
+function nextQ(){Q.i++; if(Q.i>=Q.list.length) return quizDone(); renderQ(); window.scrollTo(0,0)}
+$("nextBtn").addEventListener("click",nextQ);
+function quizDone(){
+  show("result");
+  const tot=Q.list.length, wrong=Q.wrong.slice(), pct=Math.round(Q.score/tot*100);
+  const wordKeys=new Set(wrong.map(q=>q.type==="mean"?q.it.key:wordOf(q.it).key));
+  $("result").innerHTML=`<div class="label">${esc(Q.name)} 결과</div>
+    <p class="score">${Q.score} / ${tot}</p>
+    <p class="note">정답률 ${pct}%${wrong.length?` · 틀린 ${wrong.length}문제는 오답 노트에 저장됐어요`:""}</p>
+    <div class="btns">
+      ${wrong.length?`<button class="btn" id="qW">틀린 ${wrong.length}문제 바로 다시 풀기</button>
+      <button class="btn ghost" id="qC">틀린 단어 ${wordKeys.size}개 카드로 보기</button>`:""}
+      ${wrongTotal()?`<button class="btn ghost" id="qN">오답 노트 열기 (${wrongTotal()}개)</button>`:""}
+      <button class="btn ghost" id="qH">처음으로</button>
+    </div>
+    ${wrong.length?`<div><div class="label">틀린 문제</div><ul class="rlist">${wrong.map(q=>{const it=q.it;
+      if(q.type==="use") return `<li><div><span class="tag t">쓰임</span> <span class="strike">${esc(q.u.repWord)}</span> → <span class="w">${esc(it.a)}</span> · ${esc(it.m)}</div><div class="ex">${filled(it)}</div><div class="ko">${esc(it.k)}</div></li>`;
+      return q.type==="blank"
+        ?`<li><div><span class="tag t">빈칸</span> <span class="w">${esc(it.w)}</span> · ${esc(it.m)}</div><div class="ex">${filled(it)}</div><div class="ko">${esc(it.k)}</div></li>`
+        :`<li><div><span class="tag t">뜻</span> <span class="w">${esc(it.w)}</span> · ${esc(it.mean)}</div>${it.senses.map(s=>`<div class="ex">${filled(s)}</div>`).join("")}</li>`}).join("")}</ul></div>`:""}`;
+  if(wrong.length){$("qW").onclick=()=>startQuiz(wrong,"틀린 문제");$("qC").onclick=()=>startCards(WORDS.filter(g=>wordKeys.has(g.key)),true,"오답 단어")}
+  if(wrongTotal())$("qN").onclick=()=>{H.mode="wr";goHome()};
+  $("qH").onclick=goHome;
+}
+
+/* ---------- keyboard ---------- */
+document.addEventListener("keydown",e=>{
+  if(e.target.closest&&e.target.closest("input,textarea"))return;
+  if(!$("cards").hidden){
+    if(e.key===" "){e.preventDefault();flip()}
+    else if(e.key==="ArrowRight")cardNext(true);
+    else if(e.key==="ArrowDown")cardNext(false);
+    else if(e.key==="ArrowLeft")cardPrev();
+    return;
+  }
+  if(!$("quiz").hidden){
+    if(Q.done&&e.key==="Enter"&&document.activeElement!==$("nextBtn")){e.preventDefault();nextQ();return}
+    if(!Q.done&&/^[1-5]$/.test(e.key)){const b=$("qOpts").querySelectorAll(".opt")[+e.key-1];if(b)answer(b)}
+  }
+});
+renderHome();
+</script>
+<script>
+if("serviceWorker" in navigator){window.addEventListener("load",()=>{navigator.serviceWorker.register("sw.js").catch(()=>{})})}
+</script>
+</body>
+</html>
